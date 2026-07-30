@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Soát Vé Tự Động</title>
+  <script src="https://unpkg.com/html5-qrcode"></script>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f4f4f9; margin: 0; }
+    h2 { color: #333; }
+    #reader { width: 100%; max-width: 500px; margin: 0 auto; background: white; border-radius: 8px; overflow: hidden; display: none; }
+    #message-box { margin-top: 20px; padding: 15px; border-radius: 5px; font-weight: bold; font-size: 18px; white-space: pre-line; display: none; }
+    .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+    .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+    .btn { padding: 15px 30px; font-size: 18px; color: white; border: none; border-radius: 5px; cursor: pointer; width: 100%; max-width: 400px; margin-top: 20px; }
+    .btn-start { background-color: #007bff; }
+    .btn-resume { background-color: #28a745; display: none; }
+  </style>
+</head>
+<body>
+
+  <h2>Hệ Thống Check-in</h2>
+  
+  <button id="start-btn" class="btn btn-start" onclick="startScanner()">Bật Camera Quét Vé</button>
+  
+  <div id="reader"></div>
+  <div id="message-box"></div>
+  
+  <button id="resume-btn" class="btn btn-resume" onclick="resumeScanner()">Quét Vé Tiếp Theo</button>
+
+  <script>
+    // Điền link Google Apps Script vào đây
+    const API_URL = "https://script.google.com/macros/s/AKfycbzqpVx1FujysPSyhQLkdGwh6ZRLfOUtJxeTBHUOzpJvqqtvH4F5V8v1p93fxGTv2I04PQ/exec";
+    
+    let html5QrcodeScanner;
+
+    function startScanner() {
+      document.getElementById('start-btn').style.display = 'none';
+      document.getElementById('reader').style.display = 'block';
+      
+      html5QrcodeScanner = new Html5QrcodeScanner(
+        "reader", { fps: 10, qrbox: { width: 250, height: 250 } }
+      );
+      html5QrcodeScanner.render(onScanSuccess);
+    }
+
+    function onScanSuccess(decodedText) {
+      html5QrcodeScanner.pause();
+      
+      let msgBox = document.getElementById('message-box');
+      msgBox.style.display = 'block';
+      msgBox.className = '';
+      msgBox.innerHTML = "⏳ Đang kiểm tra mã vé...";
+      document.getElementById('resume-btn').style.display = 'none';
+
+      // Gửi request tới Google Apps Script
+      // Dùng text/plain để tránh bị Google chặn lỗi CORS Preflight
+      fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ scannedText: decodedText })
+      })
+      .then(response => response.json())
+      .then(data => {
+        msgBox.className = data.success ? 'success' : 'error';
+        msgBox.innerHTML = data.message;
+        document.getElementById('resume-btn').style.display = 'inline-block';
+      })
+      .catch(error => {
+        msgBox.className = 'error';
+        msgBox.innerHTML = error.message;
+        document.getElementById('resume-btn').style.display = 'inline-block';
+      });
+    }
+
+    function resumeScanner() {
+      document.getElementById('message-box').style.display = 'none';
+      document.getElementById('resume-btn').style.display = 'none';
+      html5QrcodeScanner.resume();
+    }
+  </script>
+</body>
+</html>
