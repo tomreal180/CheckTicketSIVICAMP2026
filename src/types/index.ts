@@ -4,6 +4,19 @@ export interface Participant {
   ticketType: 'DAY PASS' | 'FULL EXPERIENCE PASS' | 'BTC';
   status: 'valid' | 'used' | 'invalid';
   size: string;
+  house: string;
+  team: string;
+  hotel_room: string;
+  message?: string;
+}
+
+export interface Organizer {
+  id: string;
+  name: string;
+  status?: 'active' | 'inactive';
+  mission?: string;
+  size?: string;
+  hotel_room?: string;
   message?: string;
 }
 

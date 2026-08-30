@@ -1,7 +1,7 @@
-import type { Participant, Equipment, EquipmentLog } from '../types';
+import type { Participant, Organizer, Equipment, EquipmentLog, CheckInLog } from '../types';
 
 // TODO: ĐIỀN ĐƯỜNG DẪN WEB APP CỦA BẠN VÀO ĐÂY
-const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzqpVx1FujysPSyhQLkdGwh6ZRLfOUtJxeTBHUOzpJvqqtvH4F5V8v1p93fxGTv2I04PQ/exec';
+const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRXwpc6RBPZG3i4w9v4kO9Vm2YG_PNKdspI1Ybni2f_x3iMsdbUbW3qkGm9giF-gDQ2g/exec';
 
 /**
  * Hàm helper để gọi API tới Google App Script.
@@ -40,28 +40,67 @@ async function fetchAppScript(payload: any) {
 
 export const AppScriptService = {
   // 1. Quét QR Check-in người tham gia
-  async checkInParticipant(qrData: string, event: string): Promise<Participant> {
+  async checkInParticipant(qrData: string, event: string, BTC: boolean): Promise<Participant | Organizer> {
     return fetchAppScript({
       action: 'checkInParticipant',
       qrData: qrData,
-      event: event
+      event: event,
+      BTC: BTC,
     });
   },
 
-  // 2. Lấy danh sách thiết bị
-  async getEquipments(): Promise<Equipment[]> {
+  // 2. Lấy danh sách thiết bị khả dụng trong kho
+  async getAvailableEquipments(): Promise<Equipment[]> {
     return fetchAppScript({
-      action: 'getEquipments'
+      action: 'getAvailableEquipments'
     });
   },
 
-  // 3. Quét QR Mượn/Trả đồ (BTC)
-  async handleEquipment(qrData: string, equipmentId: string, action: 'borrow' | 'return'): Promise<{ log: EquipmentLog, equipment: Equipment }> {
+  // 2.5 Lấy danh sách thiết bị mà một BTC đang mượn
+  async getBorrowedEquipments(btcId: string): Promise<{id: string, name: string}[]> {
+    return fetchAppScript({
+      action: 'getBorrowedEquipmentsByBTCID',
+      borrower_id: btcId
+    });
+  },
+
+  // 3. Kiểm tra BTC hợp lệ trước khi giao dịch thiết bị
+  async checkBTC(qrData: string): Promise<Organizer> {
+    return fetchAppScript({
+      action: 'checkBTC',
+      qrData: qrData
+    });
+  },
+
+  // 4. Quét QR Mượn/Trả đồ (BTC)
+  async handleEquipment(borrowerId: string, borrowerName: string, equipmentId: string, action: 'borrow' | 'return'): Promise<{ log: EquipmentLog, equipment: Equipment }> {
     return fetchAppScript({
       action: 'handleEquipment',
-      qrData: qrData,
+      borrowerId: borrowerId,
+      borrowerName: borrowerName,
       equipmentId: equipmentId,
       actionType: action
+    });
+  },
+
+  // 5. Thống kê Check-in
+  async getAllCheckInStats(): Promise<Record<string, { participant: { count: number, total: number }, btc: { count: number, total: number } | null }>> {
+    return fetchAppScript({
+      action: 'getAllCheckInStats'
+    });
+  },
+
+  // 6. Lấy danh sách thiết bị đang mượn
+  async getAllBorrowedEquipments(): Promise<any[]> {
+    return fetchAppScript({
+      action: 'getAllBorrowedEquipments'
+    });
+  },
+
+  // 7. Lấy kịch bản nhân sự (Tất cả các ngày)
+  async getAllBtcSchedules(): Promise<Record<string, any[]>> {
+    return fetchAppScript({
+      action: 'getAllBtcSchedules'
     });
   },
 

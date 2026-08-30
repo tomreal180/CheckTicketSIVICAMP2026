@@ -1,151 +1,402 @@
 <template>
-  <div class="space-y-8 animate-[fade-in_0.6s_ease-out]">
-    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-      <div class="flex flex-col gap-2">
-        <h1 class="text-4xl md:text-5xl font-semibold tracking-tight text-gradient">Dashboard Thống Kê</h1>
-        <p class="text-lg text-foreground-muted">Tổng quan số liệu theo thời gian thực</p>
+  <div class="h-full flex flex-col p-6 space-y-6 overflow-y-auto">
+    <!-- Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div class="flex flex-col gap-1">
+        <h1 class="text-3xl font-bold tracking-tight text-white flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          Thống kê Sự kiện
+        </h1>
+        <p class="text-sm text-foreground-muted">Tổng quan về tình trạng check-in, thiết bị và nhân sự</p>
       </div>
-      <BaseButton @click="loadData" variant="outline" :loading="loading" class="group">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2 group-hover:rotate-180 transition-transform duration-500"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+      
+      <button 
+        @click="fetchAllData" 
+        :disabled="isRefreshing"
+        class="flex items-center gap-2 px-4 py-2 bg-accent/10 hover:bg-accent/20 text-accent border border-accent/20 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <svg :class="{'animate-spin': isRefreshing}" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
         Đồng bộ dữ liệu
-      </BaseButton>
+      </button>
     </div>
 
-    <!-- Asymmetric Bento Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-6 auto-rows-[minmax(180px,auto)] gap-4 lg:gap-6">
-      
-      <!-- Lượt Check-in (Hero metric) - Spans 2 cols, 1 row -->
-      <BaseCard class="md:col-span-3 lg:col-span-2 relative overflow-hidden group border-white/10"
-                style="background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)">
-        <div class="absolute inset-0 bg-gradient-to-br from-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        <div class="h-full flex flex-col justify-between relative z-10">
-          <div class="flex items-center gap-2">
-            <div class="p-2 bg-accent/20 rounded-lg text-accent">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+    <!-- Cards -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <BaseCard class="p-5 flex flex-col justify-between border-white/[0.05] bg-white/[0.01]">
+        <div class="flex flex-col gap-3 mb-2">
+          <div class="flex justify-between items-center">
+            <h3 class="text-foreground-muted font-medium text-sm">Tổng Check-in</h3>
+            <div class="p-1.5 bg-blue-500/10 rounded-lg text-blue-400">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>
             </div>
-            <h3 class="text-sm font-mono tracking-widest text-foreground-subtle uppercase">Tổng Check-in</h3>
           </div>
-          <div>
-            <p class="text-6xl font-semibold tracking-tighter text-foreground mt-4 group-hover:scale-105 origin-left transition-transform duration-300">
-              {{ stats?.totalCheckIns || 0 }}
-            </p>
-          </div>
+          <BaseSelect v-model="selectedEvent" :options="events" class="w-full !py-1.5 !px-2.5 text-xs bg-white/[0.03]" />
         </div>
-      </BaseCard>
-
-      <!-- Thiết bị (Hero metric) - Spans 2 cols, 1 row -->
-      <BaseCard class="md:col-span-3 lg:col-span-2 relative overflow-hidden group border-white/10"
-                style="background: linear-gradient(145deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%)">
-        <div class="absolute inset-0 bg-gradient-to-bl from-purple-500/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-        <div class="h-full flex flex-col justify-between relative z-10">
-          <div class="flex items-center gap-2">
-            <div class="p-2 bg-purple-500/20 rounded-lg text-purple-400">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.29 7 12 12 20.71 7"/><line x1="12" y1="22" x2="12" y2="12"/></svg>
+        
+        <div class="space-y-3 mt-auto">
+          <!-- Thí sinh -->
+          <div class="flex items-center justify-between">
+            <div class="flex items-baseline gap-1.5">
+              <p class="text-2xl font-bold text-foreground leading-none">{{ checkInStats ? checkInStats.participant.count : 0 }}</p>
+              <span class="text-xs font-normal text-foreground-muted">/ {{ checkInStats ? checkInStats.participant.total : 0 }}</span>
             </div>
-            <h3 class="text-sm font-mono tracking-widest text-foreground-subtle uppercase">Thiết bị đang mượn</h3>
-          </div>
-          <div>
-            <p class="text-6xl font-semibold tracking-tighter text-foreground mt-4 group-hover:scale-105 origin-left transition-transform duration-300">
-              {{ stats?.activeBorrowers || 0 }}
-            </p>
-          </div>
-        </div>
-      </BaseCard>
-
-      <!-- Trạng thái kho hậu cần - Spans 2 cols on Desktop, 4 cols on XL -->
-      <BaseCard title="Kho Hậu Cần" class="md:col-span-6 lg:col-span-2 lg:row-span-2 h-full flex flex-col">
-        <div class="space-y-6 mt-2 flex-grow overflow-y-auto pr-2 custom-scrollbar">
-          <div v-for="eq in stats?.equipments" :key="eq.id" class="relative group">
-            <div class="flex mb-2 items-center justify-between">
-              <div>
-                <span class="text-sm font-medium text-foreground tracking-wide group-hover:text-accent transition-colors">
-                  {{ eq.name }}
-                </span>
-              </div>
-              <div class="text-right text-xs font-mono text-foreground-muted">
-                {{ eq.available }} / {{ eq.total }}
-              </div>
-            </div>
-            <div class="overflow-hidden h-1.5 flex rounded-full bg-white/[0.04]">
-              <div :style="`width: ${(eq.available / eq.total) * 100}%`" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center transition-all duration-1000 ease-out"
-                   :class="eq.available < eq.total / 4 ? 'bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]' : 'bg-accent shadow-[0_0_10px_rgba(94,106,210,0.5)]'"></div>
-            </div>
+            <span class="text-[11px] font-medium text-blue-400 bg-blue-500/10 px-2 py-0.5 rounded-full border border-blue-500/20">Thí sinh</span>
           </div>
           
-          <div v-if="!stats?.equipments?.length" class="text-center text-foreground-muted py-8 text-sm">
-            Không có dữ liệu thiết bị
+          <!-- BTC -->
+          <div v-if="checkInStats && checkInStats.btc" class="flex items-center justify-between pt-3 border-t border-white/[0.05]">
+            <div class="flex items-baseline gap-1.5">
+              <p class="text-2xl font-bold text-foreground leading-none">{{ checkInStats.btc.count }}</p>
+              <span class="text-xs font-normal text-foreground-muted">/ {{ checkInStats.btc.total }}</span>
+            </div>
+            <span class="text-[11px] font-medium text-purple-400 bg-purple-500/10 px-2 py-0.5 rounded-full border border-purple-500/20">BTC</span>
           </div>
         </div>
       </BaseCard>
 
-      <!-- Log Check-in gần đây - Spans 4 cols, 1 row -->
-      <BaseCard title="Hoạt động Check-in" class="md:col-span-6 lg:col-span-4 h-full">
-        <div class="overflow-x-auto custom-scrollbar -mx-2 px-2">
-          <table class="min-w-full divide-y divide-white/[0.06]">
-            <thead>
-              <tr>
-                <th scope="col" class="py-3 text-left text-xs font-mono tracking-widest text-foreground-subtle uppercase">Thời gian</th>
-                <th scope="col" class="py-3 text-left text-xs font-mono tracking-widest text-foreground-subtle uppercase">Người tham gia</th>
-                <th scope="col" class="py-3 text-left text-xs font-mono tracking-widest text-foreground-subtle uppercase">Sự kiện</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-white/[0.04]">
-              <tr v-for="log in stats?.checkInLogs.slice().reverse().slice(0,4)" :key="log.id" class="hover:bg-white/[0.02] transition-colors group">
-                <td class="py-3 whitespace-nowrap text-sm text-foreground-muted font-mono group-hover:text-foreground-subtle transition-colors">{{ new Date(log.timestamp).toLocaleTimeString() }}</td>
-                <td class="py-3 whitespace-nowrap text-sm font-medium text-foreground group-hover:text-accent transition-colors">{{ log.participantName }}</td>
-                <td class="py-3 whitespace-nowrap text-sm text-foreground-subtle">
-                  <span class="px-2 py-1 rounded-md bg-white/[0.03] border border-white/[0.05] text-xs">
-                    {{ log.eventId }}
-                  </span>
-                </td>
-              </tr>
-              <tr v-if="!stats?.checkInLogs.length">
-                <td colspan="3" class="py-8 text-center text-sm text-foreground-muted">Chưa có hoạt động check-in nào</td>
-              </tr>
-            </tbody>
-          </table>
+      <BaseCard class="p-5 flex flex-col justify-between border-white/[0.05] bg-white/[0.01]">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="text-foreground-muted font-medium text-sm">Kho hậu cần</h3>
+          <div class="p-2 bg-emerald-500/10 rounded-lg text-emerald-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          </div>
         </div>
+        <p class="text-3xl font-bold text-foreground">{{ totalAvailableEq }} <span class="text-xs font-normal text-foreground-muted ml-1">thiết bị sẵn sàng</span></p>
       </BaseCard>
 
+      <BaseCard class="p-5 flex flex-col justify-between border-white/[0.05] bg-white/[0.01]">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="text-foreground-muted font-medium text-sm">Thiết bị đang mượn</h3>
+          <div class="p-2 bg-amber-500/10 rounded-lg text-amber-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="m9 15 2 2 4-4"/></svg>
+          </div>
+        </div>
+        <p class="text-3xl font-bold text-foreground">{{ borrowedEquipments.length }} <span class="text-xs font-normal text-foreground-muted ml-1">lượt mượn</span></p>
+      </BaseCard>
+
+      <BaseCard class="p-5 flex flex-col justify-between border-white/[0.05] bg-white/[0.01]">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="text-foreground-muted font-medium text-sm">Nhân sự BTC (Bận / Rảnh)</h3>
+          <div class="p-2 bg-purple-500/10 rounded-lg text-purple-400">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+        </div>
+        <p class="text-3xl font-bold text-foreground">
+          <span class="text-green-400">{{ activeBtcCount }}</span> 
+          <span class="text-xl text-foreground-muted mx-1">/</span> 
+          <span class="text-foreground-subtle">{{ standbyBtcCount }}</span>
+        </p>
+      </BaseCard>
+    </div>
+
+    <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
+      
+      <!-- HẬU CẦN -->
+      <div class="space-y-6">
+        <h2 class="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+          Quản lý Hậu cần
+        </h2>
+        
+        <BaseCard class="p-0 overflow-hidden border-white/[0.05]">
+          <div class="p-4 bg-white/[0.02] border-b border-white/[0.05] flex justify-between items-center">
+            <h3 class="font-medium text-foreground-subtle text-sm">Thiết bị đang cho mượn</h3>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-sm text-left">
+              <thead class="text-xs text-foreground-muted bg-white/[0.02] border-b border-white/[0.05]">
+                <tr>
+                  <th class="px-4 py-3 font-medium">Người mượn</th>
+                  <th class="px-4 py-3 font-medium">Thiết bị</th>
+                  <th class="px-4 py-3 font-medium">Giờ mượn</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="eq in borrowedEquipments" :key="eq.id" class="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">
+                  <td class="px-4 py-3 font-medium text-foreground">{{ eq.borrowerName }} <span class="text-xs text-foreground-muted font-mono block">{{ eq.borrowerId }}</span></td>
+                  <td class="px-4 py-3 text-foreground-subtle">{{ eq.equipmentName }}</td>
+                  <td class="px-4 py-3 font-mono text-foreground-muted text-xs">{{ eq.borrowTime }}</td>
+                </tr>
+                <tr v-if="borrowedEquipments.length === 0">
+                  <td colspan="3" class="px-4 py-6 text-center text-foreground-muted">Không có thiết bị nào đang mượn</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </BaseCard>
+
+        <BaseCard class="p-0 overflow-hidden border-white/[0.05]">
+          <div class="p-4 bg-white/[0.02] border-b border-white/[0.05] flex justify-between items-center">
+            <h3 class="font-medium text-foreground-subtle text-sm">Kho thiết bị khả dụng</h3>
+          </div>
+          <div class="overflow-x-auto max-h-[300px]">
+            <table class="w-full text-sm text-left">
+              <thead class="text-xs text-foreground-muted bg-white/[0.02] border-b border-white/[0.05] sticky top-0 backdrop-blur-md">
+                <tr>
+                  <th class="px-4 py-3 font-medium">ID</th>
+                  <th class="px-4 py-3 font-medium">Tên thiết bị</th>
+                  <th class="px-4 py-3 font-medium text-right">Tình trạng</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="eq in availableEquipments" :key="eq.id" class="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">
+                  <td class="px-4 py-3 font-mono text-foreground-muted text-xs">{{ eq.id }}</td>
+                  <td class="px-4 py-3 text-foreground-subtle">{{ eq.name }}</td>
+                  <td class="px-4 py-3 text-right">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-mono" :class="eq.available > 0 ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'">
+                      {{ eq.available }} / {{ eq.total }}
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </BaseCard>
+      </div>
+
+      <!-- NHÂN SỰ -->
+      <div class="space-y-6">
+        <div class="flex flex-col gap-4">
+          <h2 class="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            Quản lý Nhân sự BTC
+          </h2>
+          <div class="flex flex-wrap items-center gap-4">
+            <div class="flex items-center gap-2">
+              <span class="text-[11px] text-foreground-muted uppercase tracking-wider font-semibold mt-0.5">Sự kiện</span>
+              <BaseSelect v-model="selectedPersonnelEvent" :options="personnelEvents" class="w-48 !py-1.5 !px-2.5 text-xs bg-white/[0.03]" />
+            </div>
+            <div class="flex items-center gap-1">
+              <span class="text-[11px] text-foreground-muted uppercase tracking-wider font-semibold mt-0.5 mr-1">Khung giờ</span>
+              <BaseSelect v-model="selectedHour" :options="hourOptions" class="w-24" />
+              <span class="text-foreground-muted font-bold">:</span>
+              <BaseSelect v-model="selectedMinute" :options="minuteOptions" class="w-24" />
+            </div>
+          </div>
+        </div>
+        
+        <BaseCard class="p-0 overflow-hidden border-white/[0.05]">
+          <div class="p-4 bg-accent/10 border-b border-accent/20 flex justify-between items-center">
+            <h3 class="font-medium text-accent text-sm flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-accent animate-pulse"></span>
+              Đang làm nhiệm vụ (On Duty)
+            </h3>
+          </div>
+          <div class="overflow-x-auto max-h-[400px]">
+            <table class="w-full text-sm text-left">
+              <thead class="text-xs text-foreground-muted bg-white/[0.02] border-b border-white/[0.05] sticky top-0 backdrop-blur-md">
+                <tr>
+                  <th class="px-4 py-3 font-medium">BTC</th>
+                  <th class="px-4 py-3 font-medium">Nhiệm vụ hiện tại</th>
+                  <th class="px-4 py-3 font-medium text-center">Điểm danh</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="btc in onDutyBtc" :key="btc.id" class="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">
+                  <td class="px-4 py-3">
+                    <p class="font-medium text-foreground">{{ btc.name }}</p>
+                    <p class="text-xs text-foreground-muted font-mono">{{ btc.id }}</p>
+                  </td>
+                  <td class="px-4 py-3 text-accent font-medium">{{ btc.currentTask }}</td>
+                  <td class="px-4 py-3 text-center">
+                    <span v-if="btc.checkedIn" class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-green-500/10 text-green-400 border border-green-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    </span>
+                    <span v-else class="inline-flex items-center justify-center w-6 h-6 rounded-full bg-red-500/10 text-red-400 border border-red-500/20">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </span>
+                  </td>
+                </tr>
+                <tr v-if="onDutyBtc.length === 0">
+                  <td colspan="3" class="px-4 py-6 text-center text-foreground-muted">Không có ai có nhiệm vụ trong khung giờ này</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </BaseCard>
+
+        <BaseCard class="p-0 overflow-hidden border-white/[0.05]">
+          <div class="p-4 bg-white/[0.02] border-b border-white/[0.05] flex justify-between items-center">
+            <h3 class="font-medium text-foreground-subtle text-sm">Đã Check-in & Rảnh việc (Standby)</h3>
+          </div>
+          <div class="overflow-x-auto max-h-[300px]">
+            <table class="w-full text-sm text-left opacity-70 hover:opacity-100 transition-opacity">
+              <thead class="text-xs text-foreground-muted bg-white/[0.02] border-b border-white/[0.05] sticky top-0 backdrop-blur-md">
+                <tr>
+                  <th class="px-4 py-3 font-medium">BTC</th>
+                  <th class="px-4 py-3 font-medium">Team</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="btc in standbyBtc" :key="btc.id" class="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">
+                  <td class="px-4 py-3">
+                    <p class="font-medium text-foreground">{{ btc.name }}</p>
+                    <p class="text-xs text-foreground-muted font-mono">{{ btc.id }}</p>
+                  </td>
+                  <td class="px-4 py-3 text-foreground-subtle">{{ btc.team }}</td>
+                </tr>
+                <tr v-if="standbyBtc.length === 0">
+                  <td colspan="2" class="px-4 py-6 text-center text-foreground-muted">Không có nhân sự nào rảnh ở hiện tại</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </BaseCard>
+      </div>
+      
     </div>
   </div>
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted } from 'vue';
+import { defineComponent, ref, computed, onMounted } from 'vue';
 import BaseCard from '../../components/common/BaseCard.vue';
-import BaseButton from '../../components/common/BaseButton.vue';
+import BaseSelect from '../../components/common/BaseSelect.vue';
 import { AppScriptService } from '../../services/appScriptService';
+import type { Equipment } from '../../types';
 
 export default defineComponent({
   name: 'StatisticsView',
   components: {
     BaseCard,
-    BaseButton
+    BaseSelect
   },
   setup() {
-    const stats = ref<any>(null);
-    const loading = ref(false);
+    // ---- EVENT CHECK-IN STATE ----
+    const selectedEvent = ref('SiviHack');
+    const events = [
+      { label: 'SiviHack', value: 'SiviHack' },
+      { label: 'SiviTour', value: 'SiviTour' },
+      { label: 'SiviTa', value: 'SiviTa' },
+      { label: 'Hotel', value: 'Hotel' },
+    ];
 
-    const loadData = async () => {
-      loading.value = true;
+    const allCheckInStats = ref<Record<string, { participant: { count: number, total: number }, btc: { count: number, total: number } | null }>>({});
+
+    const checkInStats = computed(() => {
+      if (allCheckInStats.value[selectedEvent.value]) {
+        return allCheckInStats.value[selectedEvent.value];
+      }
+      return { participant: { count: 0, total: 0 }, btc: null };
+    });
+
+    const fetchCheckInStats = async () => {
       try {
-        stats.value = await AppScriptService.getStatistics();
-      } catch (error) {
-        console.error(error);
+        const stats = await AppScriptService.getAllCheckInStats();
+        allCheckInStats.value = stats;
+      } catch (err) {
+        console.error("Failed to load check in stats", err);
+      }
+    };
+
+    // ---- EQUIPMENT STATE ----
+    const availableEquipments = ref<Equipment[]>([]);
+    const borrowedEquipments = ref<any[]>([]);
+    const isRefreshing = ref(false);
+
+    const totalAvailableEq = computed(() => {
+      return availableEquipments.value.reduce((sum, eq) => sum + eq.available, 0);
+    });
+
+    const fetchAllData = async () => {
+      isRefreshing.value = true;
+      try {
+        fetchCheckInStats();
+        const [available, borrowed, schedules] = await Promise.all([
+          AppScriptService.getAvailableEquipments(),
+          AppScriptService.getAllBorrowedEquipments(),
+          AppScriptService.getAllBtcSchedules()
+        ]);
+        availableEquipments.value = available;
+        borrowedEquipments.value = borrowed;
+        allSchedules.value = schedules;
+      } catch (err) {
+        console.error("Failed to load initial data", err);
       } finally {
-        loading.value = false;
+        isRefreshing.value = false;
       }
     };
 
     onMounted(() => {
-      loadData();
+      fetchAllData();
     });
 
+    // ---- SCHEDULE STATE ----
+    const selectedPersonnelEvent = ref('SiviHack17');
+    const personnelEvents = [
+      { label: 'SiviHack 17/09', value: 'SiviHack17' },
+      { label: 'SiviHack 18/09', value: 'SiviHack18' },
+      { label: 'SiviTour', value: 'SiviTour' },
+      { label: 'SiviTa', value: 'SiviTa' },
+    ];
+    
+    const selectedHour = ref('09');
+    const selectedMinute = ref('00');
+
+    const simulatedTime = computed(() => `${selectedHour.value}:${selectedMinute.value}`);
+    
+    // Tự động sinh mảng giờ từ 09 đến 22
+    const hourOptions = (() => {
+      const options = [];
+      for (let h = 9; h <= 22; h++) {
+        const hourStr = h.toString().padStart(2, '0');
+        options.push({ label: hourStr, value: hourStr });
+      }
+      return options;
+    })();
+
+    const minuteOptions = [
+      { label: '00', value: '00' },
+      { label: '30', value: '30' }
+    ];
+
+    const allSchedules = ref<Record<string, any[]>>({});
+
+    const currentBtcStatus = computed(() => {
+      const scheduleData = allSchedules.value[selectedPersonnelEvent.value] || [];
+      return scheduleData.map(btc => {
+        // Tìm task ở thời điểm được chọn
+        let currentTask = btc.tasks[simulatedTime.value] || null;
+        
+        return {
+          ...btc,
+          currentTask
+        };
+      });
+    });
+
+    const onDutyBtc = computed(() => {
+      return currentBtcStatus.value.filter(btc => btc.currentTask !== null);
+    });
+
+    const standbyBtc = computed(() => {
+      // Standby là những người đã check in NHƯNG không có task hiện tại
+      return currentBtcStatus.value.filter(btc => btc.currentTask === null && btc.checkedIn);
+    });
+
+    const activeBtcCount = computed(() => onDutyBtc.value.length);
+    const standbyBtcCount = computed(() => standbyBtc.value.length);
+
     return {
-      stats,
-      loading,
-      loadData
+      selectedEvent,
+      events,
+      checkInStats,
+      availableEquipments,
+      totalAvailableEq,
+      borrowedEquipments,
+      selectedPersonnelEvent,
+      personnelEvents,
+      simulatedTime,
+      selectedHour,
+      selectedMinute,
+      hourOptions,
+      minuteOptions,
+      onDutyBtc,
+      standbyBtc,
+      activeBtcCount,
+      standbyBtcCount,
+      isRefreshing,
+      fetchAllData,
     };
   }
 });
@@ -155,20 +406,5 @@ export default defineComponent({
 @keyframes fade-in {
   from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
-}
-
-.custom-scrollbar::-webkit-scrollbar {
-  height: 6px;
-  width: 6px;
-}
-.custom-scrollbar::-webkit-scrollbar-track {
-  background: transparent;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(255,255,255,0.1);
-  border-radius: 10px;
-}
-.custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(255,255,255,0.2);
 }
 </style>

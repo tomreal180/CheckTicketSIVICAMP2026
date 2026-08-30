@@ -62,6 +62,18 @@
                 <span class="text-foreground-muted text-sm">Size Áo</span>
                 <span class="font-medium text-foreground">{{ participant.size }}</span>
               </div>
+              <div class="flex justify-between items-center border-b border-white/[0.04] pb-2">
+                <span class="text-foreground-muted text-sm">Nhà</span>
+                <span class="font-medium text-foreground">{{ participant.house }}</span>
+              </div>
+              <div class="flex justify-between items-center border-b border-white/[0.04] pb-2">
+                <span class="text-foreground-muted text-sm">Đội</span>
+                <span class="font-medium text-foreground">{{ participant.team }}</span>
+              </div>
+              <div v-if="participant.hotel_room" class="flex justify-between items-center border-b border-white/[0.04] pb-2">
+                <span class="text-foreground-muted text-sm">Phòng khách sạn</span>
+                <span class="font-medium text-foreground">{{ participant.hotel_room }}</span>
+              </div>
               <div v-if="participant.message" class="text-sm mt-4 pt-3 border-t border-white/[0.06] text-foreground-subtle italic">
                 {{ participant.message }}
               </div>
@@ -126,9 +138,9 @@ export default defineComponent({
         result.value = false;
         participant.value = null;
         
-        const res = await AppScriptService.checkInParticipant(qrData, selectedEvent.value);
+        const res = await AppScriptService.checkInParticipant(qrData, selectedEvent.value, false);
         
-        participant.value = res;
+        participant.value = res as Participant;
         resultType.value = 'success';
         resultTitle.value = 'Check-in hợp lệ';
       } catch (error: any) {
