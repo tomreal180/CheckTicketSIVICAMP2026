@@ -1,13 +1,15 @@
 export interface Participant {
   id: string;
   name: string;
-  ticketType: 'DAY PASS' | 'FULL EXPERIENCE PASS' | 'BTC';
+  ticketType: 'DAY PASS' | 'FULL EXPERIENCE PASS' | 'BTC' | 'Night pass' | string;
   status: 'valid' | 'used' | 'invalid';
   size: string;
   house: string;
   team: string;
   hotel_room: string;
   message?: string;
+  ticketCount?: number;
+  accompanyingPersons?: string;
 }
 
 export interface Organizer {

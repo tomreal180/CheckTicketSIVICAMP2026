@@ -41,10 +41,7 @@
             class="animate-[slide-up_0.3s_ease-out]"
           >
             <div v-if="participant" class="space-y-3 mt-4">
-              <div class="flex justify-between items-center border-b border-white/[0.04] pb-2">
-                <span class="text-foreground-muted text-sm">Mã tham gia</span>
-                <span class="font-mono text-foreground">{{ participant.id }}</span>
-              </div>
+              <!-- Chung -->
               <div class="flex justify-between items-center border-b border-white/[0.04] pb-2">
                 <span class="text-foreground-muted text-sm">Họ và tên</span>
                 <span class="font-medium text-foreground">{{ participant.name }}</span>
@@ -53,27 +50,48 @@
                 <span class="text-foreground-muted text-sm">Loại vé</span>
                 <span>
                   <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-mono tracking-wider uppercase border"
-                        :class="participant.ticketType !== 'DAY PASS' ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30' : 'bg-white/5 text-gray-300 border-white/10'">
+                        :class="participant.ticketType?.toLowerCase().includes('night') ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' : (participant.ticketType !== 'DAY PASS' ? 'bg-yellow-500/10 text-yellow-300 border-yellow-500/30' : 'bg-white/5 text-gray-300 border-white/10')">
                     {{ participant.ticketType }}
                   </span>
                 </span>
               </div>
-              <div class="flex justify-between items-center border-b border-white/[0.04] pb-2">
-                <span class="text-foreground-muted text-sm">Size Áo</span>
-                <span class="font-medium text-foreground">{{ participant.size }}</span>
-              </div>
-              <div class="flex justify-between items-center border-b border-white/[0.04] pb-2">
-                <span class="text-foreground-muted text-sm">Nhà</span>
-                <span class="font-medium text-foreground">{{ participant.house }}</span>
-              </div>
-              <div class="flex justify-between items-center border-b border-white/[0.04] pb-2">
-                <span class="text-foreground-muted text-sm">Đội</span>
-                <span class="font-medium text-foreground">{{ participant.team }}</span>
-              </div>
-              <div v-if="participant.hotel_room" class="flex justify-between items-center border-b border-white/[0.04] pb-2">
-                <span class="text-foreground-muted text-sm">Phòng khách sạn</span>
-                <span class="font-medium text-foreground">{{ participant.hotel_room }}</span>
-              </div>
+
+              <!-- Dành riêng cho Night pass -->
+              <template v-if="participant.ticketType?.toLowerCase().includes('night')">
+                <div v-if="participant.ticketCount" class="flex justify-between items-center border-b border-white/[0.04] pb-2">
+                  <span class="text-foreground-muted text-sm">Số lượng vé</span>
+                  <span class="font-medium text-foreground">{{ participant.ticketCount }}</span>
+                </div>
+                <div v-if="participant.accompanyingPersons" class="flex flex-col gap-1 border-b border-white/[0.04] pb-2">
+                  <span class="text-foreground-muted text-sm">Người đi cùng</span>
+                  <span class="font-medium text-foreground text-right whitespace-pre-wrap">{{ participant.accompanyingPersons }}</span>
+                </div>
+              </template>
+
+              <!-- Dành cho các loại vé khác -->
+              <template v-else>
+                <div class="flex justify-between items-center border-b border-white/[0.04] pb-2">
+                  <span class="text-foreground-muted text-sm">Mã tham gia</span>
+                  <span class="font-mono text-foreground">{{ participant.id }}</span>
+                </div>
+                <div v-if="participant.size" class="flex justify-between items-center border-b border-white/[0.04] pb-2">
+                  <span class="text-foreground-muted text-sm">Size Áo</span>
+                  <span class="font-medium text-foreground">{{ participant.size }}</span>
+                </div>
+                <div v-if="participant.house" class="flex justify-between items-center border-b border-white/[0.04] pb-2">
+                  <span class="text-foreground-muted text-sm">Nhà</span>
+                  <span class="font-medium text-foreground">{{ participant.house }}</span>
+                </div>
+                <div v-if="participant.team" class="flex justify-between items-center border-b border-white/[0.04] pb-2">
+                  <span class="text-foreground-muted text-sm">Đội</span>
+                  <span class="font-medium text-foreground">{{ participant.team }}</span>
+                </div>
+                <div v-if="participant.hotel_room" class="flex justify-between items-center border-b border-white/[0.04] pb-2">
+                  <span class="text-foreground-muted text-sm">Phòng khách sạn</span>
+                  <span class="font-medium text-foreground">{{ participant.hotel_room }}</span>
+                </div>
+              </template>
+
               <div v-if="participant.message" class="text-sm mt-4 pt-3 border-t border-white/[0.06] text-foreground-subtle italic">
                 {{ participant.message }}
               </div>

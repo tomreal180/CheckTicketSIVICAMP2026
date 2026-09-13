@@ -1,4 +1,4 @@
-import type { Participant, Organizer, Equipment, EquipmentLog} from '../types';
+import type { Participant, Organizer, Equipment, EquipmentLog, CheckInLog } from '../types';
 
 // TODO: ĐIỀN ĐƯỜNG DẪN WEB APP CỦA BẠN VÀO ĐÂY
 const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwRXwpc6RBPZG3i4w9v4kO9Vm2YG_PNKdspI1Ybni2f_x3iMsdbUbW3qkGm9giF-gDQ2g/exec';
