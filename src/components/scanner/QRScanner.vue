@@ -67,6 +67,7 @@ const startScanner = async () => {
       },
       (errorMessage) => {
         // Parse error, ignore usually
+        console.warn('QR Scan Error:', errorMessage);
       }
     );
   } catch (err: any) {
