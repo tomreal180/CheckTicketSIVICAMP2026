@@ -155,7 +155,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, onMounted, computed, watch } from 'vue';
+import { defineComponent, ref, computed, watch } from 'vue';
 import BaseCard from '../../components/common/BaseCard.vue';
 import BaseSelect from '../../components/common/BaseSelect.vue';
 import BaseButton from '../../components/common/BaseButton.vue';
