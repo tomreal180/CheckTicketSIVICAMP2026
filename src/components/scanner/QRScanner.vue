@@ -27,8 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onBeforeUnmount } from 'vue';
-import { Html5Qrcode } from 'html5-qrcode';
+import { ref, onBeforeUnmount, shallowRef } from 'vue';
 import BaseButton from '../common/BaseButton.vue';
 
 const props = defineProps({
@@ -42,19 +41,26 @@ const emit = defineEmits(['scanSuccess', 'scanError', 'scanStarted']);
 
 const isScanning = ref(false);
 const cameraError = ref('');
-let html5QrCode: Html5Qrcode | null = null;
+const html5QrCode = shallowRef<any>(null);
+let Html5QrcodeClass: any = null;
 
 const startScanner = async () => {
   cameraError.value = '';
   
-  if (!html5QrCode) {
-    html5QrCode = new Html5Qrcode("qr-reader");
-  }
-
   try {
+    if (!Html5QrcodeClass) {
+      // Lazy load thư viện nặng này để tăng tốc độ tải trang ban đầu
+      const module = await import('html5-qrcode');
+      Html5QrcodeClass = module.Html5Qrcode;
+    }
+
+    if (!html5QrCode.value) {
+      html5QrCode.value = new Html5QrcodeClass("qr-reader");
+    }
+
     emit('scanStarted');
     isScanning.value = true;
-    await html5QrCode.start(
+    await html5QrCode.value.start(
       { facingMode: "environment" },
       {
         fps: 10,
@@ -67,7 +73,6 @@ const startScanner = async () => {
       },
       (errorMessage) => {
         // Parse error, ignore usually
-        console.warn('QR Scan Error:', errorMessage);
       }
     );
   } catch (err: any) {
@@ -78,8 +83,8 @@ const startScanner = async () => {
 };
 
 const stopScanner = async () => {
-  if (html5QrCode && html5QrCode.isScanning) {
-    await html5QrCode.stop();
+  if (html5QrCode.value && html5QrCode.value.isScanning) {
+    await html5QrCode.value.stop();
     isScanning.value = false;
   }
 };

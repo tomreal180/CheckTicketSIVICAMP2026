@@ -1,7 +1,4 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import ParticipantCheckInView from '../views/CheckIn/ParticipantCheckInView.vue'
-import BtcManagementView from '../views/BTC/BtcManagementView.vue'
-import StatisticsView from '../views/Statistics/StatisticsView.vue'
 
 const routes = [
   {
@@ -11,17 +8,17 @@ const routes = [
   {
     path: '/check-in',
     name: 'CheckIn',
-    component: ParticipantCheckInView
+    component: () => import('../views/CheckIn/ParticipantCheckInView.vue')
   },
   {
     path: '/btc',
     name: 'BTCManagement',
-    component: BtcManagementView
+    component: () => import('../views/BTC/BtcManagementView.vue')
   },
   {
     path: '/statistics',
     name: 'Statistics',
-    component: StatisticsView
+    component: () => import('../views/Statistics/StatisticsView.vue')
   }
 ]
 
