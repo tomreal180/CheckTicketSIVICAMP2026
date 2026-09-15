@@ -67,12 +67,13 @@ const startScanner = async () => {
         qrbox: { width: 250, height: 250 },
         aspectRatio: 1.0,
       },
-      (decodedText) => {
+      (decodedText : string) => {
         stopScanner();
         emit('scanSuccess', decodedText);
       },
-      (errorMessage) => {
+      (errorMessage : string) => {
         // Parse error, ignore usually
+        console.warn(errorMessage);
       }
     );
   } catch (err: any) {
