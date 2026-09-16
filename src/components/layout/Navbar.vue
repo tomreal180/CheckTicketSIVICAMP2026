@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import { QrCode, Users, LayoutDashboard } from 'lucide-vue-next';
+import { Users, LayoutDashboard } from 'lucide-vue-next';
 
 const isMobileMenuOpen = ref(false);
 
