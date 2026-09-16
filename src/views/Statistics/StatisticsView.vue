@@ -375,10 +375,6 @@ export default defineComponent({
       }
     };
 
-    watch(selectedEvent, () => {
-      fetchParticipants();
-    });
-
     // ---- EQUIPMENT STATE ----
     const availableEquipments = ref<Equipment[]>([]);
     const borrowedEquipments = ref<any[]>([]);
@@ -479,43 +475,46 @@ export default defineComponent({
     const standbyBtcCount = computed(() => standbyBtc.value.length);
 
     // ---- PARTICIPANT LOOKUP STATE ----
-    const allParticipants = ref<any[]>([]);
+    const rawAllParticipants = ref<Record<string, any[]>>({});
     const participantSearchQuery = ref('');
     const participantCheckInFilter = ref('all'); // 'all', 'checkedIn', 'notCheckedIn'
     const participantTypeFilter = ref('all');
     
-    // Khi đổi sự kiện (selectedEvent) ở tab Check-in, fetch lại danh sách
+    // Fetch danh sách người tham gia (tất cả các event) 1 lần duy nhất
     const fetchParticipants = async () => {
       try {
-        const data = await AppScriptService.getAllParticipants(selectedEvent.value);
-        
-        // Lọc người tham gia có thể tham gia event đang chọn
-        const evt = selectedEvent.value;
-        const validData = (data || []).filter(p => {
-          if (!p.ticketType) return true; // Nếu không có loại vé, mặc định cho qua
-          const t = String(p.ticketType).toLowerCase();
-          
-          if (evt === 'SiviHack') {
-            return t.includes('full experience pass');
-          }
-          if (evt === 'SiviTour') {
-            return t.includes('day pass') || t.includes('full experience pass');
-          }
-          if (evt === 'SiviTa') {
-            return true; // Tất cả các loại vé đều được tham gia
-          }
-          if (evt === 'Hotel') {
-            return t.includes('khách sạn') || t.includes('khach san');
-          }
-          return true;
-        });
-
-        allParticipants.value = validData;
+        const data = await AppScriptService.getAllParticipants();
+        rawAllParticipants.value = data || {};
       } catch (err) {
         console.error("Failed to load participants", err);
-        allParticipants.value = [];
+        rawAllParticipants.value = {};
       }
     };
+
+    const allParticipants = computed(() => {
+      const evt = selectedEvent.value;
+      const data = rawAllParticipants.value[evt] || [];
+      
+      // Lọc người tham gia có thể tham gia event đang chọn
+      return data.filter(p => {
+        if (!p.ticketType) return true; // Nếu không có loại vé, mặc định cho qua
+        const t = String(p.ticketType).toLowerCase();
+        
+        if (evt === 'SiviHack') {
+          return t.includes('full experience pass');
+        }
+        if (evt === 'SiviTour') {
+          return t.includes('day pass') || t.includes('full experience pass');
+        }
+        if (evt === 'SiviTa') {
+          return true; // Tất cả các loại vé đều được tham gia
+        }
+        if (evt === 'Hotel') {
+          return t.includes('khách sạn') || t.includes('khach san');
+        }
+        return true;
+      });
+    });
 
     // Tự động generate các option loại vé từ dữ liệu thực tế
     const ticketTypeOptions = computed(() => {

@@ -111,11 +111,10 @@ export const AppScriptService = {
     });
   },
 
-  // 8. Lấy toàn bộ danh sách người tham gia của một sự kiện
-  async getAllParticipants(event: string): Promise<any[]> {
+  // 8. Lấy toàn bộ danh sách người tham gia của tất cả các sự kiện
+  async getAllParticipants(): Promise<Record<string, any[]>> {
     return fetchAppScript({
-      action: 'getAllParticipants',
-      event: event
+      action: 'getAllParticipants'
     });
   }
 };
