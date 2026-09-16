@@ -61,7 +61,7 @@ import { QrCode, Users, LayoutDashboard } from 'lucide-vue-next';
 const isMobileMenuOpen = ref(false);
 
 const navItems = [
-  { name: 'Check-in', path: '/check-in', icon: QrCode },
+  // { name: 'Check-in', path: '/check-in', icon: QrCode },
   { name: 'Quản lý BTC', path: '/btc', icon: Users },
   { name: 'Thống kê', path: '/statistics', icon: LayoutDashboard },
 ];
