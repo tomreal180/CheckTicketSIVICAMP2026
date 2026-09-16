@@ -335,7 +335,7 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, watch } from 'vue';
+import { defineComponent, ref, computed, onMounted } from 'vue';
 import BaseCard from '../../components/common/BaseCard.vue';
 import BaseSelect from '../../components/common/BaseSelect.vue';
 import { AppScriptService } from '../../services/appScriptService';
