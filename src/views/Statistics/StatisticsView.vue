@@ -89,6 +89,92 @@
       </BaseCard>
     </div>
 
+    <!-- TRA CỨU NGƯỜI THAM GIA -->
+    <div class="space-y-6 mt-2">
+      <div class="flex flex-col gap-4">
+        <h2 class="text-xl font-semibold tracking-tight text-foreground flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-accent"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+          Tra cứu Người tham gia
+        </h2>
+        
+        <!-- Filters row 1: Dropdown & Buttons -->
+        <div class="flex flex-col md:flex-row md:items-center gap-4">
+          <!-- Dropdown Ticket Type -->
+          <div class="flex items-center gap-2 bg-white/[0.03] p-1.5 rounded-lg border border-white/[0.05]">
+            <span class="text-[11px] text-foreground-muted uppercase tracking-wider font-semibold ml-2">Loại vé:</span>
+            <BaseSelect v-model="participantTypeFilter" :options="ticketTypeOptions" class="w-48 !py-1.5 !px-2.5 text-xs bg-transparent border-none" />
+          </div>
+
+          <!-- Check-in Status Buttons -->
+          <div class="flex items-center bg-white/[0.03] rounded-lg border border-white/[0.05] p-1">
+            <button @click="participantCheckInFilter = 'all'" :class="['px-4 py-1.5 text-xs font-medium rounded-md transition-colors', participantCheckInFilter === 'all' ? 'bg-white/10 text-white' : 'text-foreground-muted hover:text-white hover:bg-white/5']">
+              Tất cả ({{ participantCheckInCounts.all }})
+            </button>
+            <button @click="participantCheckInFilter = 'checkedIn'" :class="['px-4 py-1.5 text-xs font-medium rounded-md transition-colors', participantCheckInFilter === 'checkedIn' ? 'bg-green-500/20 text-green-400' : 'text-foreground-muted hover:text-white hover:bg-white/5']">
+              Đã Check-in ({{ participantCheckInCounts.checkedIn }})
+            </button>
+            <button @click="participantCheckInFilter = 'notCheckedIn'" :class="['px-4 py-1.5 text-xs font-medium rounded-md transition-colors', participantCheckInFilter === 'notCheckedIn' ? 'bg-red-500/20 text-red-400' : 'text-foreground-muted hover:text-white hover:bg-white/5']">
+              Chưa Check-in ({{ participantCheckInCounts.notCheckedIn }})
+            </button>
+          </div>
+        </div>
+          
+        <!-- Filters row 2: Search bar -->
+        <div class="relative w-full">
+          <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+            <svg class="h-4 w-4 text-foreground-muted" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+              <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd" />
+            </svg>
+          </div>
+          <input 
+            v-model="participantSearchQuery" 
+            type="text" 
+            class="block w-full pl-10 pr-3 py-2 border border-white/[0.1] rounded-lg leading-5 bg-white/[0.02] text-foreground placeholder-foreground-muted focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent sm:text-sm transition-colors" 
+            placeholder="Tìm theo Tên hoặc ID..." 
+          />
+        </div>
+      </div>
+      
+      <BaseCard class="p-0 overflow-hidden border-white/[0.05]">
+        <div class="overflow-x-auto max-h-[500px]">
+          <table class="w-full text-sm text-left">
+            <thead class="text-xs text-foreground-muted bg-white/[0.02] border-b border-white/[0.05] sticky top-0 backdrop-blur-md z-10">
+              <tr>
+                <th class="px-4 py-3 font-medium">ID</th>
+                <th class="px-4 py-3 font-medium">Họ và tên</th>
+                <th class="px-4 py-3 font-medium">Loại vé</th>
+                <th class="px-4 py-3 font-medium text-center">Trạng thái Check-in</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="p in filteredParticipants" :key="p.id" class="border-b border-white/[0.02] hover:bg-white/[0.02] transition-colors">
+                <td class="px-4 py-3 font-mono text-xs text-foreground-subtle">{{ p.id }}</td>
+                <td class="px-4 py-3 font-medium text-foreground">{{ p.name }}</td>
+                <td class="px-4 py-3 text-foreground-subtle">
+                  <span class="px-2 py-1 bg-white/[0.05] rounded text-xs border border-white/[0.05]">{{ p.ticketType || 'N/A' }}</span>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <span v-if="p.checkedIn" class="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full bg-green-500/10 text-green-400 border border-green-500/20 text-xs font-medium">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Đã vào
+                  </span>
+                  <span v-else class="inline-flex items-center justify-center gap-1.5 px-2.5 py-1 rounded-full bg-red-500/10 text-red-400 border border-red-500/20 text-xs font-medium opacity-70">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Chưa
+                  </span>
+                </td>
+              </tr>
+              <tr v-if="filteredParticipants.length === 0">
+                <td colspan="4" class="px-4 py-8 text-center text-foreground-muted">
+                  {{ allParticipants.length === 0 ? 'Đang tải dữ liệu...' : 'Không tìm thấy kết quả nào phù hợp' }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </BaseCard>
+    </div>
+
     <div class="grid grid-cols-1 xl:grid-cols-2 gap-6">
       
       <!-- HẬU CẦN -->
@@ -243,13 +329,13 @@
           </div>
         </BaseCard>
       </div>
-      
+      </div>
     </div>
-  </div>
+  
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted } from 'vue';
+import { defineComponent, ref, computed, onMounted, watch } from 'vue';
 import BaseCard from '../../components/common/BaseCard.vue';
 import BaseSelect from '../../components/common/BaseSelect.vue';
 import { AppScriptService } from '../../services/appScriptService';
@@ -289,6 +375,10 @@ export default defineComponent({
       }
     };
 
+    watch(selectedEvent, () => {
+      fetchParticipants();
+    });
+
     // ---- EQUIPMENT STATE ----
     const availableEquipments = ref<Equipment[]>([]);
     const borrowedEquipments = ref<any[]>([]);
@@ -302,6 +392,7 @@ export default defineComponent({
       isRefreshing.value = true;
       try {
         fetchCheckInStats();
+        fetchParticipants(); // Fetch danh sách người tham gia
         const [available, borrowed, schedules] = await Promise.all([
           AppScriptService.getAvailableEquipments(),
           AppScriptService.getAllBorrowedEquipments(),
@@ -326,19 +417,29 @@ export default defineComponent({
     const personnelEvents = [
       { label: 'SiviHack 17/09', value: 'SiviHack17' },
       { label: 'SiviHack 18/09', value: 'SiviHack18' },
-      { label: 'SiviTour', value: 'SiviTour' },
-      { label: 'SiviTa', value: 'SiviTa' },
+      { label: 'SiviTour - SiviTa 19/09', value: 'SiviTour' },
     ];
     
-    const selectedHour = ref('09');
-    const selectedMinute = ref('00');
+    const now = new Date();
+    let currentHour = now.getHours();
+    let currentMinute = now.getMinutes();
+    
+    // Giới hạn giờ mặc định nằm trong khoảng 09 đến 22
+    if (currentHour < 7) currentHour = 7;
+    if (currentHour > 24) currentHour = 24;
+
+    const initialHour = currentHour.toString().padStart(2, '0');
+    const initialMinute = currentMinute >= 30 ? '30' : '00';
+
+    const selectedHour = ref(initialHour);
+    const selectedMinute = ref(initialMinute);
 
     const simulatedTime = computed(() => `${selectedHour.value}:${selectedMinute.value}`);
     
     // Tự động sinh mảng giờ từ 09 đến 22
     const hourOptions = (() => {
       const options = [];
-      for (let h = 9; h <= 22; h++) {
+      for (let h = 7; h <= 24; h++) {
         const hourStr = h.toString().padStart(2, '0');
         options.push({ label: hourStr, value: hourStr });
       }
@@ -377,6 +478,108 @@ export default defineComponent({
     const activeBtcCount = computed(() => onDutyBtc.value.length);
     const standbyBtcCount = computed(() => standbyBtc.value.length);
 
+    // ---- PARTICIPANT LOOKUP STATE ----
+    const allParticipants = ref<any[]>([]);
+    const participantSearchQuery = ref('');
+    const participantCheckInFilter = ref('all'); // 'all', 'checkedIn', 'notCheckedIn'
+    const participantTypeFilter = ref('all');
+    
+    // Khi đổi sự kiện (selectedEvent) ở tab Check-in, fetch lại danh sách
+    const fetchParticipants = async () => {
+      try {
+        const data = await AppScriptService.getAllParticipants(selectedEvent.value);
+        
+        // Lọc người tham gia có thể tham gia event đang chọn
+        const evt = selectedEvent.value;
+        const validData = (data || []).filter(p => {
+          if (!p.ticketType) return true; // Nếu không có loại vé, mặc định cho qua
+          const t = String(p.ticketType).toLowerCase();
+          
+          if (evt === 'SiviHack') {
+            return t.includes('full experience pass');
+          }
+          if (evt === 'SiviTour') {
+            return t.includes('day pass') || t.includes('full experience pass');
+          }
+          if (evt === 'SiviTa') {
+            return true; // Tất cả các loại vé đều được tham gia
+          }
+          if (evt === 'Hotel') {
+            return t.includes('khách sạn') || t.includes('khach san');
+          }
+          return true;
+        });
+
+        allParticipants.value = validData;
+      } catch (err) {
+        console.error("Failed to load participants", err);
+        allParticipants.value = [];
+      }
+    };
+
+    // Tự động generate các option loại vé từ dữ liệu thực tế
+    const ticketTypeOptions = computed(() => {
+      const types = new Set<string>();
+      allParticipants.value.forEach(p => {
+        if (p.ticketType) types.add(p.ticketType);
+      });
+      
+      const options = [{ label: `Tất cả (${allParticipants.value.length})`, value: 'all' }];
+      Array.from(types).forEach(type => {
+        const count = allParticipants.value.filter(p => p.ticketType === type).length;
+        options.push({ label: `${type} (${count})`, value: type });
+      });
+      return options;
+    });
+
+    const participantCheckInCounts = computed(() => {
+      let base = allParticipants.value;
+      if (participantTypeFilter.value !== 'all') {
+        base = base.filter(p => p.ticketType === participantTypeFilter.value);
+      }
+      if (participantSearchQuery.value) {
+        const query = participantSearchQuery.value.toLowerCase().trim();
+        base = base.filter(p => 
+          (p.name && p.name.toLowerCase().includes(query)) || 
+          (p.id && p.id.toLowerCase().includes(query))
+        );
+      }
+      
+      const checkedIn = base.filter(p => p.checkedIn === true).length;
+      return {
+        all: base.length,
+        checkedIn: checkedIn,
+        notCheckedIn: base.length - checkedIn
+      };
+    });
+
+    const filteredParticipants = computed(() => {
+      let result = allParticipants.value;
+
+      // Filter by Check-in status
+      if (participantCheckInFilter.value === 'checkedIn') {
+        result = result.filter(p => p.checkedIn === true);
+      } else if (participantCheckInFilter.value === 'notCheckedIn') {
+        result = result.filter(p => !p.checkedIn);
+      }
+
+      // Filter by Ticket Type
+      if (participantTypeFilter.value !== 'all') {
+        result = result.filter(p => p.ticketType === participantTypeFilter.value);
+      }
+
+      // Filter by Search Query
+      if (participantSearchQuery.value) {
+        const query = participantSearchQuery.value.toLowerCase().trim();
+        result = result.filter(p => 
+          (p.name && p.name.toLowerCase().includes(query)) || 
+          (p.id && p.id.toLowerCase().includes(query))
+        );
+      }
+
+      return result;
+    });
+
     return {
       selectedEvent,
       events,
@@ -397,6 +600,13 @@ export default defineComponent({
       standbyBtcCount,
       isRefreshing,
       fetchAllData,
+      allParticipants,
+      participantSearchQuery,
+      participantCheckInFilter,
+      participantTypeFilter,
+      ticketTypeOptions,
+      filteredParticipants,
+      participantCheckInCounts
     };
   }
 });

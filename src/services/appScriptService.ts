@@ -109,5 +109,13 @@ export const AppScriptService = {
     return fetchAppScript({
       action: 'getStatistics'
     });
+  },
+
+  // 8. Lấy toàn bộ danh sách người tham gia của một sự kiện
+  async getAllParticipants(event: string): Promise<any[]> {
+    return fetchAppScript({
+      action: 'getAllParticipants',
+      event: event
+    });
   }
 };
