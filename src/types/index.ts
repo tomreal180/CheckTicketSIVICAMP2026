@@ -10,6 +10,7 @@ export interface Participant {
   message?: string;
   ticketCount?: number;
   accompanyingPersons?: string;
+  dob?: string
 }
 
 export interface Organizer {

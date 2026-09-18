@@ -82,6 +82,10 @@
                   <span class="text-foreground-muted text-sm">Nhà</span>
                   <span class="font-medium text-foreground">{{ participant.house }}</span>
                 </div>
+                <div v-if="participant.dob" class="flex justify-between items-center border-b border-white/[0.04] pb-2">
+                  <span class="text-foreground-muted text-sm">DOB</span>
+                  <span class="font-medium text-foreground">{{ participant.dob }}</span>
+                </div>
                 <div v-if="participant.team" class="flex justify-between items-center border-b border-white/[0.04] pb-2">
                   <span class="text-foreground-muted text-sm">Đội</span>
                   <span class="font-medium text-foreground">{{ participant.team }}</span>
@@ -140,7 +144,8 @@ export default defineComponent({
       { label: 'Hotel', value: 'Hotel' },
       { label: 'Hackathon SiviHack', value: 'SiviHack' },
       { label: 'Tour tham quan SiviTour', value: 'SiviTour' },
-      { label: 'GALA SiviTa', value: 'SiviTa' }
+      { label: 'GALA SiviTa', value: 'SiviTa' },
+      { label: 'SiviHack 18', value: 'SiviHack18' }
     ];
 
     const loading = ref(false);
